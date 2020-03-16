@@ -23,7 +23,7 @@ DEFAULT_CHART_RELEASER_VERSION=v0.2.3
 : "${CR_TOKEN:?Environment variable CR_TOKEN must be set}"
 
 show_help() {
-cat << EOF
+    cat <<EOF
 Usage: $(basename "$0") <options>
 
     -h, --help               Display help
@@ -47,7 +47,7 @@ main() {
     echo "$repo"
     local repo_root
     repo_root=$(git rev-parse --show-toplevel)
-    pushd "$repo_root" > /dev/null
+    pushd "$repo_root" >/dev/null
 
     echo 'Looking up latest tag...'
     local latest_tag
@@ -55,7 +55,7 @@ main() {
 
     echo "Discovering changed charts since '$latest_tag'..."
     local changed_charts=()
-    readarray -t changed_charts <<< "$(lookup_changed_charts "$latest_tag")"
+    readarray -t changed_charts <<<"$(lookup_changed_charts "$latest_tag")"
 
     if [[ -n "${changed_charts[*]}" ]]; then
         install_chart_releaser
@@ -76,69 +76,69 @@ main() {
         echo "Nothing to do. No chart changes detected."
     fi
 
-    popd > /dev/null
+    popd >/dev/null
 }
 
 parse_command_line() {
     while :; do
         case "${1:-}" in
-            -h|--help)
+        -h | --help)
+            show_help
+            exit
+            ;;
+        -v | --version)
+            if [[ -n "${2:-}" ]]; then
+                version="$2"
+                shift
+            else
+                echo "ERROR: '-v|--version' cannot be empty." >&2
                 show_help
-                exit
-                ;;
-            -v|--version)
-                if [[ -n "${2:-}" ]]; then
-                    version="$2"
-                    shift
-                else
-                    echo "ERROR: '-v|--version' cannot be empty." >&2
-                    show_help
-                    exit 1
-                fi
-                ;;
-            -d|--charts-dir)
-                if [[ -n "${2:-}" ]]; then
-                    charts_dir="$2"
-                    shift
-                else
-                    echo "ERROR: '-d|--charts-dir' cannot be empty." >&2
-                    show_help
-                    exit 1
-                fi
-                ;;
-            -u|--charts-repo-url)
-                if [[ -n "${2:-}" ]]; then
-                    charts_repo_url="$2"
-                    shift
-                else
-                    echo "ERROR: '-u|--charts-repo-url' cannot be empty." >&2
-                    show_help
-                    exit 1
-                fi
-                ;;
-            -o|--owner)
-                if [[ -n "${2:-}" ]]; then
-                    owner="$2"
-                    shift
-                else
-                    echo "ERROR: '--owner' cannot be empty." >&2
-                    show_help
-                    exit 1
-                fi
-                ;;
-            -r|--repo)
-                if [[ -n "${2:-}" ]]; then
-                    repo="$2"
-                    shift
-                else
-                    echo "ERROR: '--repo' cannot be empty." >&2
-                    show_help
-                    exit 1
-                fi
-                ;;
-            *)
-                break
-                ;;
+                exit 1
+            fi
+            ;;
+        -d | --charts-dir)
+            if [[ -n "${2:-}" ]]; then
+                charts_dir="$2"
+                shift
+            else
+                echo "ERROR: '-d|--charts-dir' cannot be empty." >&2
+                show_help
+                exit 1
+            fi
+            ;;
+        -u | --charts-repo-url)
+            if [[ -n "${2:-}" ]]; then
+                charts_repo_url="$2"
+                shift
+            else
+                echo "ERROR: '-u|--charts-repo-url' cannot be empty." >&2
+                show_help
+                exit 1
+            fi
+            ;;
+        -o | --owner)
+            if [[ -n "${2:-}" ]]; then
+                owner="$2"
+                shift
+            else
+                echo "ERROR: '--owner' cannot be empty." >&2
+                show_help
+                exit 1
+            fi
+            ;;
+        -r | --repo)
+            if [[ -n "${2:-}" ]]; then
+                repo="$2"
+                shift
+            else
+                echo "ERROR: '--repo' cannot be empty." >&2
+                show_help
+                exit 1
+            fi
+            ;;
+        *)
+            break
+            ;;
         esac
 
         shift
@@ -170,9 +170,9 @@ install_chart_releaser() {
 }
 
 lookup_latest_tag() {
-    git fetch --tags > /dev/null 2>&1
+    git fetch --tags >/dev/null 2>&1
 
-    if ! git describe --tags --abbrev=0 2> /dev/null; then
+    if ! git describe --tags --abbrev=0 2>/dev/null; then
         git rev-list --max-parents=0 --first-parent HEAD
     fi
 }
@@ -190,14 +190,14 @@ lookup_changed_charts() {
         fields='1,2'
     fi
 
-    cut -d '/' -f "$fields" <<< "$changed_files" | uniq
+    cut -d '/' -f "$fields" <<<"$changed_files" | uniq
 }
 
 package_chart() {
     local chart="$1"
 
     echo "Packaging chart '$chart'..."
-    helm package "$chart" --destination .cr-release-packages --dependency-update --save=false
+    helm package "$chart" --destination .cr-release-packages --dependency-update
 }
 
 release_charts() {
@@ -218,7 +218,7 @@ update_index() {
 
     cp --force .cr-index/index.yaml "$gh_pages_worktree/index.yaml"
 
-    pushd "$gh_pages_worktree" > /dev/null
+    pushd "$gh_pages_worktree" >/dev/null
 
     git add index.yaml
     git commit --message="Update index.yaml" --signoff
@@ -226,7 +226,7 @@ update_index() {
     local repo_url="https://x-access-token:$CR_TOKEN@github.com/$owner/$repo"
     git push "$repo_url" gh-pages
 
-    popd > /dev/null
+    popd >/dev/null
 }
 
 main "$@"
