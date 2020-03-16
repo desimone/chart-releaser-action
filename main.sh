@@ -21,8 +21,8 @@ set -o pipefail
 SCRIPT_DIR=$(dirname -- "$(readlink -f "${BASH_SOURCE[0]}" || realpath "${BASH_SOURCE[0]}")")
 
 main() {
-    owner=$(cut -d '/' -f 1 <<< "$GITHUB_REPOSITORY")
-    repo=$(cut -d '/' -f 2 <<< "$GITHUB_REPOSITORY")
+    owner=$(cut -d '/' -f 1 <<<"$GITHUB_REPOSITORY")
+    repo=$(cut -d '/' -f 2 <<<"$GITHUB_REPOSITORY")
 
     args=(--owner "$owner" --repo "$repo")
     args+=(--charts-dir "${INPUT_CHARTS_DIR?Input 'charts_dir' is required}")
